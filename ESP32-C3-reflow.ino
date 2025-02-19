@@ -3,7 +3,7 @@
 #include <U8g2lib.h>
 #include <SPI.h>
 #include <MAX31855.h>
-#include <PID_v1.h>
+#include <PID_v1_bc.h>
 #include <Preferences.h>
 
 #define SDA_PIN 8
@@ -16,9 +16,9 @@
 
 #define SSR1_PIN 3
 
-#define BTN1_PIN 36
-#define BTN2_PIN 39
-#define BTN3_PIN 40
+#define BTN1_PIN 2
+#define BTN2_PIN 1
+#define BTN3_PIN 0
 
 #define WIDTH 128
 #define HEIGHT 64
@@ -41,8 +41,8 @@ MAX31855 thermocouple2(SCK_PIN, CS_MAX1_PIN, MISO_PIN);
 
 float current_temperature1 = 0.0;
 float current_temperature2 = 0.0;
-float pwm_out1 = 0.0;
-float pwm_out2 = 0.0;
+bool temp1_error = true;
+bool temp2_error = true;
 
 bool running_reflow = false;
 bool init_reflow = false;
@@ -151,11 +151,9 @@ display_page page_reflow_temp = {"Reflow Temp", &temperature_reflow, "", true};
 display_page page_soak1_temp = {"Soak1 Temp", &temperature_soak1, "", true};
 display_page page_soak2_temp = {"Soak2 Temp", &temperature_soak2, "", true};
 display_page page_cooling_temp = {"Cooling Temp", &temperature_cooling, "", true};
-display_page page_manual_out1 = {"Set PWM1", &pwm_out1, "", true};
-display_page page_manual_out2 = {"Set PWM2", &pwm_out2, "", true};
 
 // Menu and Pages
-#define N_PAGES 10
+#define N_PAGES 8
 int current_page = 0;
 bool new_page = true;
 unsigned long t_new_page = 0;
@@ -174,8 +172,6 @@ page pages[N_PAGES] = {
   {5, page_reflow_temp},
   {6, page_cooling_temp},
   {7, page_const_temp},
-  {8, page_manual_out1},
-  {9, page_manual_out2},
 };
 
 // Alignment for the OLED display
@@ -236,13 +232,25 @@ void update_display(){
       else mid_main.print_text(String(*pages[current_page].page.value, 1) + "C", font_s, Center, 0.5);
     }
     else{
-      mid_main.print_text(("Cur Temp: " + String(current_temperature1) + " C"), font_s, Left, 0.21);
+      if (temp1_error) {
+        mid_main.print_text(("Cur Temp: ERROR C"), font_s, Left, 0.21);
+      } else {
+        mid_main.print_text(("Cur Temp: " + String(current_temperature1) + " C"), font_s, Left, 0.21);
+      }
       mid_main.print_text(("Set Temp: " + String(pid_setpoint) + " C"), font_s, Left, 0.5);
       mid_main.print_text(("Progress: " + String(float(profile_counter)/3.0, 0) + " %"), font_s, Left, 0.8);
     }
 
-    top_left.print_text(String(current_temperature1, 0) + "C", font_xs, Center, 0.5);
-    top_right.print_text(String(current_temperature2, 0) + "C", font_xs, Center, 0.5);
+    if (temp1_error) {
+      top_left.print_text("ERROR C", font_xs, Center, 0.5);
+    } else {
+      top_left.print_text(String(current_temperature1, 0) + "C", font_xs, Center, 0.5);
+    } 
+    if (temp2_error) {
+      top_right.print_text("ERROR C", font_xs, Center, 0.5);
+    } else {
+      top_right.print_text(String(current_temperature2, 0) + "C", font_xs, Center, 0.5);
+    }
     bot.print_text(msg2display_bot, font_xs, Center, 0.5);
     top.print_text(msg2display_top, font_xs, Center, 0.5);
   }
@@ -580,8 +588,21 @@ void loop() {
   
   if(millis() >= t_thermo + 200){
     t_thermo = millis();
-    current_temperature1 = thermocouple1.readCelsius();//random(50, 300);//
-    current_temperature2 = thermocouple2.readCelsius();//random(50, 300);//thermocouple2.readCelsius();
+    float temp1, temp2;
+
+    temp1 = thermocouple1.getTemperature();
+    temp2 = thermocouple2.getTemperature();
+
+    temp1_error = isnanf(temp1);
+    temp2_error = isnanf(temp2);
+    
+    if (!temp1_error) {
+      current_temperature1 = thermocouple1.getTemperature();//random(50, 300);//
+    }
+    if (!temp2_error) {
+      current_temperature2 = thermocouple2.getTemperature();//random(50, 300);//thermocouple2.readCelsius();
+    }
+
     val1 = float(random(50,300));
   }
 }
