@@ -260,9 +260,9 @@ void update_display(){
 void setup() {
   Serial.begin(115200);
   Serial.println("start");
-  pinMode(BTN1_PIN, INPUT);
-  pinMode(BTN2_PIN, INPUT);
-  pinMode(BTN3_PIN, INPUT);
+  pinMode(BTN1_PIN, INPUT_PULLUP);
+  pinMode(BTN2_PIN, INPUT_PULLUP);
+  pinMode(BTN3_PIN, INPUT_PULLUP);
   pinMode(CS_MAX1_PIN, OUTPUT);
   pinMode(CS_MAX2_PIN, OUTPUT);
   digitalWrite(CS_MAX1_PIN, LOW);
@@ -297,7 +297,7 @@ unsigned long t_profile_counter = millis() + 800;
 unsigned long t_reflow_finish = millis() + 900;
 
 void loop() {
-  if(digitalRead(BTN1_PIN) == 1){
+  if(digitalRead(BTN1_PIN) == LOW){
     delay(50);
 
     if(pages[current_page].page.is_value){
@@ -313,7 +313,7 @@ void loop() {
     int wait_time_increase = 300;
     bool set_process = false;
 
-    while (digitalRead(BTN1_PIN) == 1){
+    while (digitalRead(BTN1_PIN) == LOW){
       if(millis() >= t_btn_pressed + wait_time_increase && !set_process){
         wait_time_increase = 80;
         t_btn_pressed = millis();
@@ -343,7 +343,7 @@ void loop() {
       delay(20);
     }
   }
-  else if(digitalRead(BTN2_PIN) == 1){
+  else if(digitalRead(BTN2_PIN) == LOW){
     delay(50);
 
     if(pages[current_page].page.is_value){
@@ -359,7 +359,7 @@ void loop() {
     int wait_time_increase = 300;
     bool set_process = false;
     
-    while (digitalRead(BTN2_PIN) == 1){
+    while (digitalRead(BTN2_PIN) == LOW){
       if(millis() >= t_btn_pressed + wait_time_increase && !set_process){
 
         wait_time_increase = 80;
@@ -390,7 +390,7 @@ void loop() {
       delay(20);
     }
   }
-  else if(digitalRead(BTN3_PIN) == 1){
+  else if(digitalRead(BTN3_PIN) == LOW){
     delay(50);
     t_new_page = millis();
     new_page = true;
@@ -399,7 +399,7 @@ void loop() {
     update_display();
 
     unsigned long t_btn_pressed = millis();
-    while (digitalRead(BTN3_PIN) == 1){
+    while (digitalRead(BTN3_PIN) == LOW){
       if(millis() >= t_btn_pressed + 800){
       }
       delay(20);
@@ -453,14 +453,14 @@ void loop() {
       update_display();
     }
 
-    if(digitalRead(BTN1_PIN) == 1 || digitalRead(BTN2_PIN) == 1 || digitalRead(BTN3_PIN) == 1){
+    if(digitalRead(BTN1_PIN) == LOW || digitalRead(BTN2_PIN) == LOW || digitalRead(BTN3_PIN) == LOW){
       reflow_done = false;
       ledcWrite(PWMChannel, 0);
 
       profile_counter = 0;
       pid_setpoint = temp_reflow_individual[0];
       
-      while(digitalRead(BTN1_PIN) == 1 || digitalRead(BTN2_PIN) == 1 || digitalRead(BTN3_PIN) == 1){ 
+      while(digitalRead(BTN1_PIN) == LOW || digitalRead(BTN2_PIN) == LOW || digitalRead(BTN3_PIN) == LOW){ 
         delay(100); 
       }
     }
