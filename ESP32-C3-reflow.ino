@@ -23,7 +23,7 @@
 #define WIDTH 128
 #define HEIGHT 64
 
-U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE, /* clock=*/ SCL_PIN, /* data=*/ SDA_PIN);
+U8G2_SSD1306_128X64_NONAME_F_SW_I2C u8g2(U8G2_R0, /* clock=*/ 9, /* data=*/ 8, /* reset=*/ U8X8_PIN_NONE); // pure SW emulated I2C
 
 double pid_setpoint, pid_input, pid_output;
 double Kp = 25, Ki = 0.3, Kd = 0.05;
